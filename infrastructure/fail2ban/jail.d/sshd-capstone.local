@@ -1,0 +1,32 @@
+# Cấu hình Jail bảo vệ dịch vụ OpenSSH 
+
+[sshd]
+# Kích hoạt jail này
+enabled = true
+
+# Cổng mạng cần bảo vệ (nhận diện theo tên service hoặc số cổng)
+port = ssh 
+
+# Sử dụng bộ lọc định nghĩa đã có sẵn cho OpenSSH (/etc/fail2ban/filter.d/sshd.conf)
+filter = sshd 
+
+# Thiết lập đường dẫn file log xác thực 
+logpath = /var/log/auth.log 
+backend = auto 
+
+# Whitelist IP
+# Note: Tuyệt đối không bao giờ BAN chính mình
+ignoreip = 127.0.0.1/8 ::1
+
+# Ngưỡng phát hiện và xử lý phạt
+maxretry = 3
+
+# Khoảng thời gian theo dõi 
+# Nếu có N lần sai (cấu hình ở trên) trong vòng X phút -> Kích hoạt lệnh cấm
+findtime = 10m
+
+# Thời gian phạt cấm kết nối 
+bantime = 1h
+
+# Hành vi cấm - thông qua chèn rule DROP vào iptables thông qua UFW
+banaction = ufw

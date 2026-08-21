@@ -1,0 +1,24 @@
+# Cấu hình Kernel Audit Rules giám sát tài khoản và phân quyền hệ thống 
+
+# Giám sát các file quản lý tài khoản và mật khẩu (theo $3.2)
+# -w: đường dẫn file cần theo dõi 
+# -p wa: chỉ bất sự kiện write và attribute change (đổi quyền chmod/chown)
+# -k: gán nhẫn nhận diện (key) để dễ dàng tra cứu log bằng lệnh ausearch
+
+# Note: Không nên thiết lập cờ `r`, vì các file hệ thống này sẽ được OS đọc rất nhiều lần, điều này có thể gây ra rác vào nhật ký, làm nặng file log và có thể làm nghẽn I/O hệ thống 
+
+-w /etc/passwd -p wa -k identity_changes
+-w /etc/shadow -p wa -k identity_changes
+-w /etc/group -p wa -k identity_changes
+-w /etc/gshadow -p wa -k identity_changes
+-w /etc/security/opasswd -p wa -k identity_changes
+
+# Giám sát cấu hình leo quyền sudo 
+-w /etc/sudoers -p wa -k sudo_changes
+-w /etc/sudoers.d/ -p wa -k sudo_changes
+
+# Giám sát các công cụ thay đổi người dùng của hệ thống 
+-w /usr/sbin/useradd -p x -k user_tool_exec
+-w /usr/sbin/userdel -p x -k user_tool_exec
+-w /usr/sbin/usermod -p x -k user_tool_exec
+-w /usr/bin/passwd -p x -k user_tool_exec
