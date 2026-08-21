@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Todo List</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+  h1 { font-size: 1.4rem; }
+  form { display: flex; gap: 8px; margin-bottom: 16px; }
+  input { flex: 1; padding: 8px; }
+  button { padding: 8px 12px; cursor: pointer; }
+  ul { list-style: none; padding: 0; }
+  li { display: flex; justify-content: space-between; align-items: center;
+       padding: 8px 0; border-bottom: 1px solid #ddd; }
+  li.done span { text-decoration: line-through; color: #888; }
+  .del-btn { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 8px; }
+  #status { font-size: 0.85rem; color: #888; }
+</style>
+</head>
+<body>
+  <h1>Todo List</h1>
+  <form id="form">
+    <input id="title" placeholder="To do..." required maxlength="255">
+    <button type="submit">Add</button>
+  </form>
+  <ul id="list"></ul>
+  <p id="status"></p>
+
+<script>
+const API = '/api/todos';
+
+async function load() {
+  const statusEl = document.getElementById('status');
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const todos = await res.json();
+    const ul = document.getElementById('list');
+    ul.innerHTML = '';
+    if (todos.length === 0) {
+      ul.innerHTML = '<li>Not found.</li>';
+    }
+    todos.forEach(t => {
+      const li = document.createElement('li');
+      if (t.done) li.classList.add('done');
+      li.innerHTML = `<span>${escapeHtml(t.title)}</span>
+        <button class="del-btn" data-id="${t.id}">Delete</button>`;
+      ul.appendChild(li);
+    });
+    statusEl.textContent = '';
+  } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.getElementById('list').addEventListener('click', async (e) => {
+  if (e.target.classList.contains('del-btn')) {
+    const id = e.target.dataset.id;
+    await fetch(`${API}/${id}`, { method: 'DELETE' });
+    load();
+  }
+});
+
+document.getElementById('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('title');
+  const title = input.value.trim();
+  if (!title) return;
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title })
+  });
+  if (res.ok) {
+    input.value = '';
+    load();
+  } else {
+    document.getElementById('status').textContent = 'Error';
+  }
+});
+
+load();
+</script>
+</body>
+</html>

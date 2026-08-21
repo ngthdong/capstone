@@ -2,6 +2,7 @@ import os
 import logging
 from contextlib import contextmanager
 from typing import Optional
+from fastapi.staticfiles import StaticFiles
 
 import psycopg2
 import psycopg2.extras
@@ -35,7 +36,7 @@ logging.basicConfig(
 logger = logging.getLogger("todoapp")
 
 app = FastAPI(title="TodoList API", version="1.0.0")
-
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 # Connect database
 @contextmanager
